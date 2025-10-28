@@ -1,0 +1,17 @@
+{
+    "name": "yarhhhgg",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "parcel src/index.html",
+        "build": "parcel build src/index.html"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "phaser": "^3.90.0"
+    },
+    "devDependencies": {
+        "parcel": "^2.16.0",
+        "process": "^0.11.10"
+    }
+}
