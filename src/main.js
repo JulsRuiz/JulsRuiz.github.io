@@ -1,13 +1,15 @@
-import Phaser, { Physics } from 'phaser'
+import Phaser, { Input, Physics } from 'phaser'
 
-import TitleScreen from './scenes/TitleScreen'
-import Game from './scenes/Game'
+import TestScene from './scenes/TestScene.js'
+import InputTestScene from './scenes/InputTestScene.js'
+import Menu from './scenes/Menu.js';
 
 const config = {
     width: 1500,
     height: 700,
     type: Phaser.AUTO,
     backgroundColor: '#727272',
+    scene: [Menu, TestScene, InputTestScene],
     physics: {
         default: 'arcade',
         arcade: {
@@ -16,10 +18,4 @@ const config = {
     }
 }
 
-const game = new Phaser.Game(config)
-
-game.scene.add('titlescreen', TitleScreen)
-game.scene.add('game', Game)
-
-//game.scene.start('titlescreen')
-game.scene.start('game')
+new Phaser.Game(config)

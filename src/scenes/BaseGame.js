@@ -1,59 +1,53 @@
-import Phaser from 'phaser'
-import Node from './node.js'
-import Popup from './popup.js'
-
-//Potential Undo button
-//Animate Rotations
-//Move counter
-//Add Scenes, one with rotations one without
-
-export default class Game extends Phaser.Scene
-{
-    buildTreeFromInput(values) {
-        // Clear existing nodes & links visually
-        for (const node of this.nodes) node.destroy();
-        this.nodes = [];
-        this.links = [];
-
-        // Helper to insert node into BST
-        const insertNode = (root, newNode) => {
-            if (newNode.value < root.value) {
-                if (!root.leftChild) {
-                    root.addChild(newNode, 'left');
-                    this.links.push({ node1: root, node2: newNode, direction: 'left' });
-                } else {
-                    insertNode(root.leftChild, newNode);
-                }
-            } else {
-                if (!root.rightChild) {
-                    root.addChild(newNode, 'right');
-                    this.links.push({ node1: root, node2: newNode, direction: 'right' });
-                } else {
-                    insertNode(root.rightChild, newNode);
-                }
-            }
-        };
-
-        // Create root and insert all others
-        if (values.length === 0) return;
-        const rootValue = Number(values[0]);
-        const root = new Node(this, 0, 0, 20, 0xffffff, rootValue);
-        this.nodes.push(root);
-        this.input.setDraggable(root);
-
-        for (let i = 1; i < values.length; i++) {
-            const val = Number(values[i]);
-            const newNode = new Node(this, 0, 0, 20, 0xffffff, val);
-            this.nodes.push(newNode);
-            this.input.setDraggable(newNode);
-            insertNode(root, newNode);
-        }
-
-        this.layoutTree(root);
-        this.validateTree(root);
+export default class BaseGame extends Phaser.Scene {
+    constructor(key) {
+        super(key);      // scene key is dynamic
     }
+
+    buildTreeFromInput(values) {
+            // Clear existing nodes & links visually
+            for (const node of this.nodes) node.destroy();
+            this.nodes = [];
+            this.links = [];
     
-   layoutTree(root, startX = 750, startY = 50, xSpacing = 300, ySpacing = 75) {
+            // Helper to insert node into BST
+            const insertNode = (root, newNode) => {
+                if (newNode.value < root.value) {
+                    if (!root.leftChild) {
+                        root.addChild(newNode, 'left');
+                        this.links.push({ node1: root, node2: newNode, direction: 'left' });
+                    } else {
+                        insertNode(root.leftChild, newNode);
+                    }
+                } else {
+                    if (!root.rightChild) {
+                        root.addChild(newNode, 'right');
+                        this.links.push({ node1: root, node2: newNode, direction: 'right' });
+                    } else {
+                        insertNode(root.rightChild, newNode);
+                    }
+                }
+            };
+    
+            // Create root and insert all others
+            if (values.length === 0) return;
+            const rootValue = Number(values[0]);
+            const root = new Node(this, 0, 0, 20, 0xffffff, rootValue);
+            this.nodes.push(root);
+            this.input.setDraggable(root);
+    
+            for (let i = 1; i < values.length; i++) {
+                const val = Number(values[i]);
+                const newNode = new Node(this, 0, 0, 20, 0xffffff, val);
+                this.nodes.push(newNode);
+                this.input.setDraggable(newNode);
+                insertNode(root, newNode);
+            }
+    
+            this.layoutTree(root);
+            this.validateTree(root);
+    }
+
+    layoutTree(root, startX = 750, startY = 50, xSpacing = 300, ySpacing = 75) {
         if (!root) return;
 
         const visited = new Set();
@@ -123,7 +117,6 @@ export default class Game extends Phaser.Scene
         this.links = this.links.filter(link => visited.has(link.node1) && visited.has(link.node2));
     }
 
-    //look up the tree to test values
     validateTree(root) {
         // Step 1 — clear all invalid flags
         for (const node of this.nodes) {
@@ -172,79 +165,19 @@ export default class Game extends Phaser.Scene
         }
     }
 
-
-
-
-    init()
-    {
+    init() {
         this.nodes = [];
         this.links = [];
 
         this.linkGraphics = this.add.graphics();
     }
 
-    constructor()
-    {
-        super('Game');
+    preload() {
+        this.load.text('treeData', '/assets/data.txt');
     }
 
-    preload()
-    {
-        this.load.image('ball', new URL('../assets/triangleBig.png', import.meta.url).href)
-    }
-
-    create()
-    {
+    create() {
         this.input.dragDistanceThreshold = 10;
-
-        for (let i = 1; i <= 31; i++) {
-            const newNode = new Node(this, 0, 0, 20, 0xffffff, i);
-            this.nodes.push(newNode);
-            this.input.setDraggable(newNode);
-        }
-
-        for(let i = 1; i < this.nodes.length; i++) {
-            const parentIndex = Math.floor((i - 1) / 2);
-            const parent = this.nodes[parentIndex];
-            const child = this.nodes[i];
-            const side = (i % 2 === 1) ? 'left' : 'right';
-
-            parent.addChild(child, side);
-
-            this.links.push({
-                node1: parent,
-                node2: child,
-                direction: side
-            });
-        }
-
-        // Create input element
-        this.inputElement = document.createElement('input');
-        this.inputElement.type = 'text';
-        this.inputElement.placeholder = 'Enter values (1,2,3...)';
-        this.inputElement.style.position = 'absolute';
-        this.inputElement.style.top = '600px';
-        this.inputElement.style.left = '40px';
-        this.inputElement.style.zIndex = '10';
-        this.inputElement.style.fontSize = '18px';
-        
-        document.body.appendChild(this.inputElement);
-
-        // Change scene on Enter key
-        this.inputElement.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                const inputValues = this.inputElement.value
-                    .split(',')
-                    .map(v => v.trim())
-                    .filter(v => v !== '');
-                this.inputElement.value = ''; // clear
-                this.buildTreeFromInput(inputValues);
-            }
-        });
-
-        //layout a valid tree
-        this.layoutTree(this.nodes[0]);
-        this.validateTree(this.nodes[0]);
 
         this.input.on('gameobjectup', (pointer, gameObject) => {
             if (pointer.button !== 0) return;
@@ -527,4 +460,5 @@ export default class Game extends Phaser.Scene
             this.linkGraphics.strokePath();
         }
     }
+
 }

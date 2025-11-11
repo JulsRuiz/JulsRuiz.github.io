@@ -97,4 +97,19 @@ export default class Node extends Phaser.GameObjects.Arc {
         this.leftChild = null;
         this.rightChild = null;
     }
+
+    destroy() {
+        // 1. Remove any links to other nodes
+        this.removeAllLinks();
+
+        // 2. Destroy the label text if it exists
+        if (this.label) {
+            this.label.destroy();
+            this.label = null;
+        }
+
+        // 3. Destroy the node itself (circle)
+        super.destroy();
+    }
+
 }
