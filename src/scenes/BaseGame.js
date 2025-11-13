@@ -1,3 +1,6 @@
+import Node from "./node.js";
+import Popup from './popup.js';
+
 export default class BaseGame extends Phaser.Scene {
     constructor(key) {
         super(key);      // scene key is dynamic
@@ -170,10 +173,10 @@ export default class BaseGame extends Phaser.Scene {
         this.links = [];
 
         this.linkGraphics = this.add.graphics();
+        this.moveCounter = 0;
     }
 
     preload() {
-        this.load.text('treeData', '/assets/data.txt');
     }
 
     create() {
@@ -283,7 +286,8 @@ export default class BaseGame extends Phaser.Scene {
                         // but allow it if the parent was cleared before
                         if (child.parent.leftChild !== child && child.parent.rightChild !== child) {
                             child.parent = null; // fix stale parent reference
-                        } else {
+                        } 
+                        else {
                             gameObject.x = gameObject.startX;
                             gameObject.y = gameObject.startY;
                             gameObject.body.updateFromGameObject();
@@ -321,6 +325,8 @@ export default class BaseGame extends Phaser.Scene {
 
                                 // update the scene's link list
                                 this.links.push({ node1: parent, node2: child, direction: side });
+                                this.moveCounter++;
+                                this.moveText.setText(`Moves: ${this.moveCounter}`);
                                 
                                 this.activePopup = null;
                             },
@@ -343,6 +349,8 @@ export default class BaseGame extends Phaser.Scene {
 
                                 // update the scene's link list
                                 this.links.push({ node1: parent, node2: child, direction: side });
+                                this.moveCounter++;
+                                this.moveText.setText(`Moves: ${this.moveCounter}`);
                                 
                                 this.activePopup = null;
                             }
@@ -355,9 +363,12 @@ export default class BaseGame extends Phaser.Scene {
                             !((link.node1 === parent && link.node2 === child && link.direction === side) ||
                             (link.node1 === child && link.node2 === parent && link.direction === side))
                         );
+                        this.moveCounter++;
+                        this.moveText.setText(`Moves: ${this.moveCounter}`);
 
                         //remove child reference
                         parent.removeChild(side);
+                        child.parent = null;
                     }
 
                     gameObject.x = gameObject.startX;
@@ -402,6 +413,36 @@ export default class BaseGame extends Phaser.Scene {
                     node.setFillStyle((node.invalid) ? 0xFF9696 : 0xffffff);
                 }
             });
+        });
+
+        this.moveText = this.add.text(20, 20, 'Moves: 0', {
+            fontSize: '24px',
+            fontStyle: 'bold',
+            color: '#ffffff',
+            backgroundColor: '#00000055',
+            padding: { x: 10, y: 5 },
+        });
+
+        const backButton = this.add.text(80, 580, 'Back', {
+            fontSize: '32px',
+            color: '#000000ff',
+            backgroundColor: '#AAFF00',
+            padding: { x: 20, y: 10 }
+        })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true }); // changes cursor to a hand
+
+        // Hover & click events
+        backButton.on('pointerover', () => {
+            backButton.setStyle({ backgroundColor: '#aaff00ba' });
+        });
+
+        backButton.on('pointerout', () => {
+            backButton.setStyle({ backgroundColor: '#AAFF00' });
+        });
+
+        backButton.on('pointerdown', () => {
+            this.scene.start('Menu');
         });
     }
 

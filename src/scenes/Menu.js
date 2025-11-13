@@ -8,31 +8,31 @@ export default class Menu extends Phaser.Scene {
     create() {
         document.querySelectorAll(".game-ui").forEach(el => el.remove());
 
-        this.add.text(400, 200, 'Binary Tree Builder', {
+        this.add.text(750, 200, 'Binary Tree Builder', {
             fontSize: '40px',
             color: '#ffffff'
         }).setOrigin(0.5);
 
-        const start = this.add.text(400, 350, 'Start (Normal Mode)', {
+        const Level1 = this.add.text(400, 350, 'Test Scene 1', {
             fontSize: '28px',
             backgroundColor: '#AAFF00',
-            padding: { x: 20, y: 10 },
+            padding: { x: 10, y: 10 },
             color: '#000'
         }).setOrigin(0.5).setInteractive();
 
-        start.on('pointerdown', () => {
+        Level1.on('pointerdown', () => {
             this.scene.start('InputTestScene');        
         });
 
-        const rotations = this.add.text(400, 450, 'Start (Rotation Mode)', {
+        const Level2 = this.add.text(700, 350, 'Test Scene 2', {
             fontSize: '28px',
             backgroundColor: '#ffcc00',
             padding: { x: 20, y: 10 },
             color: '#000'
         }).setOrigin(0.5).setInteractive();
 
-        rotations.on('pointerdown', () => {
-            this.scene.start('RotationGame');        
+        Level2.on('pointerdown', () => {
+            this.scene.start('Level2');        
         });
 
     }
