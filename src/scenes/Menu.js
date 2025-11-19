@@ -14,18 +14,18 @@ export default class Menu extends Phaser.Scene {
         }).setOrigin(0.5);
 
         const problems = [
-            { label: 'Problem 1',  scene: 'Prob01', color: '#aaff00ff' },
-            { label: 'Problem 2',  scene: 'Prob02', color: '#ffcc00' },
-            { label: 'Problem 3',  scene: 'Prob03', color: '#ff9900' },
-            { label: 'Problem 4',  scene: 'Prob04', color: '#ff6666' },
-            { label: 'Problem 5',  scene: 'Prob05', color: '#ff33cc' },
-            { label: 'Problem 6',  scene: 'Prob06', color: '#cc33ff' },
-            { label: 'Problem 7',  scene: 'Prob07', color: '#6633ff' },
-            { label: 'Problem 8',  scene: 'Prob08', color: '#3399ff' },
-            { label: 'Problem 9',  scene: 'Prob09', color: '#33ffcc' },
-            { label: 'Problem 10', scene: 'Prob10', color: '#57c071ff', font: 26 },
-            { label: 'Problem 11', scene: 'Prob11', color: '#70218dff', font: 26 },
-            { label: 'Problem 12', scene: 'Prob12', color: '#8b2424ff', font: 26 }
+            { label: 'Puzzle 1',  scene: 'Prob01', color: '#aaff00ff' },
+            { label: 'Puzzle 2',  scene: 'Prob02', color: '#ffcc00' },
+            { label: 'Puzzle 3',  scene: 'Prob03', color: '#ff9900' },
+            { label: 'Puzzle 4',  scene: 'Prob04', color: '#ff6666' },
+            { label: 'Puzzle 5',  scene: 'Prob05', color: '#ff33cc' },
+            { label: 'Puzzle 6',  scene: 'Prob06', color: '#cc33ff' },
+            { label: 'Puzzle 7',  scene: 'Prob07', color: '#6633ff' },
+            { label: 'Puzzle 8',  scene: 'Prob08', color: '#3399ff' },
+            { label: 'Puzzle 9',  scene: 'Prob09', color: '#33ffcc' },
+            { label: 'Puzzle 10', scene: 'Prob10', color: '#57c071ff', font: 26 },
+            { label: 'Puzzle 11', scene: 'Prob11', color: '#70218dff', font: 26 },
+            { label: 'Puzzle 12', scene: 'Prob12', color: '#8b2424ff', font: 26 }
         ];
 
         // Layout rules
