@@ -141,27 +141,26 @@ export default class BaseGame extends Phaser.Scene {
     validateTree(root) {
         this.treeIsValid = true;
 
-        // Step 1 — clear all invalid flags
-        for (const node of this.nodes) {
+        // Step 1 — get all Node objects in the scene
+        const allNodes = this.children.list.filter(obj => obj instanceof Node);
+        for (const node of allNodes) {
             node.invalid = false;
             node.skipped = false;
             node.setFillStyle(0xffffff);
         }
 
-        // Step 2 — recursive helper
+        // Step 2 — recursive traversal
+        const visited = new Set();
+
         const checkNode = (node) => {
             if (!node) return 0;
 
-            // skip orphans (disconnected nodes)
-            if (!node.parent && node !== root) {
-                node.skipped = true;
-                return 0;
-            }
+            visited.add(node);
 
             let leftDepth = checkNode(node.leftChild);
             let rightDepth = checkNode(node.rightChild);
 
-            // Step 3 — check binary order
+            // Step 3 — binary ordering
             if (node.leftChild && node.leftChild.value > node.value) {
                 node.invalid = true;
                 node.leftChild.invalid = true;
@@ -172,58 +171,62 @@ export default class BaseGame extends Phaser.Scene {
                 node.rightChild.invalid = true;
             }
 
-            // Step 4 — check balance
-            const balanced = Math.abs(leftDepth - rightDepth) <= 1;
-            if (!balanced) {
+            // Step 4 — balance check
+            if (Math.abs(leftDepth - rightDepth) > 1) {
                 node.invalid = true;
             }
 
             return Math.max(leftDepth, rightDepth) + 1;
         };
 
-        // Step 5 — run the check
+        // Step 5 — run recursion
         checkNode(root);
 
-        // Step 6 — visually mark invalid nodes
-        for (const node of this.nodes) {
-            if (node.invalid) {
-                if (this.treeIsValid) this.treeIsValid = false;
-                node.setFillStyle(0xFF9696); // red for invalid
-            }
-            else if (node.skipped) {
-                if (this.treeIsValid) this.treeIsValid = false;
+        // Step 6 — detect ORPHANS
+        for (const node of allNodes) {
+            if (!visited.has(node)) {
+                node.invalid = true;  // mark orphan as invalid
+                node.skipped = true;  // special flag if you want
+                this.treeIsValid = false;
             }
         }
 
-        if(this.treeIsValid) {
+        // Step 7 — color invalid nodes
+        for (const node of allNodes) {
+            if (node.invalid) {
+                node.setFillStyle(0xFF9696);
+                this.treeIsValid = false;
+            }
+        }
+
+        // Step 8 — success popup
+        if (this.treeIsValid) {
             if (this.completionPopup) return;
 
             this.inputBlocker = this.add.zone(0, 0, 1500, 800)
                 .setOrigin(0)
-                .setRectangleDropZone(1500, 800) // trick: zones catch events
-                .setDepth(11)
-                .setInteractive();
-
-            this.inputBlocker.setDepth(11);
+                .setInteractive()
+                .setDepth(11);
 
             this.completionPopup = new CompletionPopup(
                 this, 750, 350,
-                'The tree is now valid!', 
+                'The tree is now valid!',
                 'Write down your total number of moves on the survey page before returning home',
-                null,                         
-                () => {          
-                    this.isCompleted = true;            
+                null,
+                () => {
+                    this.isCompleted = true;
 
                     if (this.inputBlocker) {
                         this.inputBlocker.destroy();
                         this.inputBlocker = null;
                     }
-                    
+
                     this.scene.start('Menu');
                 }
             );
         }
     }
+
 
     init() {
         this.nodes = [];
