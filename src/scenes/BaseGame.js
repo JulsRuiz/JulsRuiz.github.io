@@ -1,9 +1,11 @@
 import Node from "./node.js";
 import Popup from './popup.js';
+import CompletionPopup from './completionPopup.js';
 
 export default class BaseGame extends Phaser.Scene {
     constructor(key) {
-        super(key);      // scene key is dynamic
+        super(key);
+        this.isCompleted = false; 
     }
 
     buildTreeFromInput(values) {
@@ -48,6 +50,22 @@ export default class BaseGame extends Phaser.Scene {
     
             this.layoutTree(root);
             this.validateTree(root);
+    }
+
+    resetTree() {
+        if (!this.startingValues || this.startingValues.length === 0) return;
+
+        // Destroy current nodes to remove connections & graphics
+        for (const node of this.nodes) {
+            node.destroy();
+        }
+
+        // Reset arrays
+        this.nodes = [];
+        this.links = [];
+
+        // Rebuild the tree exactly as it was originally
+        this.buildTreeFromInput(this.startingValues);
     }
 
     layoutTree(root, startX = 750, startY = 50, xSpacing = 300, ySpacing = 75) {
@@ -121,9 +139,12 @@ export default class BaseGame extends Phaser.Scene {
     }
 
     validateTree(root) {
+        this.treeIsValid = true;
+
         // Step 1 — clear all invalid flags
         for (const node of this.nodes) {
             node.invalid = false;
+            node.skipped = false;
             node.setFillStyle(0xffffff);
         }
 
@@ -132,7 +153,10 @@ export default class BaseGame extends Phaser.Scene {
             if (!node) return 0;
 
             // skip orphans (disconnected nodes)
-            if (!node.parent && node !== root) return 0;
+            if (!node.parent && node !== root) {
+                node.skipped = true;
+                return 0;
+            }
 
             let leftDepth = checkNode(node.leftChild);
             let rightDepth = checkNode(node.rightChild);
@@ -163,8 +187,41 @@ export default class BaseGame extends Phaser.Scene {
         // Step 6 — visually mark invalid nodes
         for (const node of this.nodes) {
             if (node.invalid) {
+                if (this.treeIsValid) this.treeIsValid = false;
                 node.setFillStyle(0xFF9696); // red for invalid
             }
+            else if (node.skipped) {
+                if (this.treeIsValid) this.treeIsValid = false;
+            }
+        }
+
+        if(this.treeIsValid) {
+            if (this.completionPopup) return;
+
+            this.inputBlocker = this.add.zone(0, 0, 1500, 800)
+                .setOrigin(0)
+                .setRectangleDropZone(1500, 800) // trick: zones catch events
+                .setDepth(11)
+                .setInteractive();
+
+            this.inputBlocker.setDepth(11);
+
+            this.completionPopup = new CompletionPopup(
+                this, 750, 350,
+                'The tree is now valid!', 
+                'Write down your total number of moves on the survey page before returning home',
+                null,                         
+                () => {          
+                    this.isCompleted = true;            
+
+                    if (this.inputBlocker) {
+                        this.inputBlocker.destroy();
+                        this.inputBlocker = null;
+                    }
+                    
+                    this.scene.start('Menu');
+                }
+            );
         }
     }
 
@@ -201,11 +258,17 @@ export default class BaseGame extends Phaser.Scene {
             }
             if (gameObject.selected) {
                 gameObject.selected = false;
-                gameObject.setFillStyle((gameObject.invalid) ? 0xFF9696 : 0xffffff);
+
+                if (gameObject.setFillStyle) {
+                    gameObject.setFillStyle(gameObject.invalid ? 0xFF9696 : 0xffffff);
+                }
             }
             else if (!gameObject.selected) {
                 gameObject.selected = true;
-                gameObject.setFillStyle(0xAAFF00);
+
+                if (gameObject.setFillStyle) {
+                    gameObject.setFillStyle(0xAAFF00);
+                }
             }
 
             // Deselect other nodes
@@ -378,7 +441,7 @@ export default class BaseGame extends Phaser.Scene {
             }
         });
 
-        const playButton = this.add.text(100, 650, 'Layout', {
+        const playButton = this.add.text(100, 100, 'Layout', {
             fontSize: '32px',
             color: '#000000ff',
             backgroundColor: '#AAFF00',
@@ -415,15 +478,15 @@ export default class BaseGame extends Phaser.Scene {
             });
         });
 
-        this.moveText = this.add.text(20, 20, 'Moves: 0', {
-            fontSize: '24px',
+        this.moveText = this.add.text(22, 20, 'Moves: 0', {
+            fontSize: '30px',
             fontStyle: 'bold',
             color: '#ffffff',
             backgroundColor: '#00000055',
             padding: { x: 10, y: 5 },
         });
 
-        const backButton = this.add.text(80, 580, 'Back', {
+        const backButton = this.add.text(80, 170, 'Back', {
             fontSize: '32px',
             color: '#000000ff',
             backgroundColor: '#AAFF00',
@@ -443,6 +506,28 @@ export default class BaseGame extends Phaser.Scene {
 
         backButton.on('pointerdown', () => {
             this.scene.start('Menu');
+        });
+
+        const resetButton = this.add.text(90, 240, 'Reset', {
+            fontSize: '32px',
+            color: '#000000ff',
+            backgroundColor: '#AAFF00',
+            padding: { x: 20, y: 10 }
+        })
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true }); // changes cursor to a hand
+
+        // Hover & click events
+        resetButton.on('pointerover', () => {
+            resetButton.setStyle({ backgroundColor: '#aaff00ba' });
+        });
+
+        resetButton.on('pointerout', () => {
+            resetButton.setStyle({ backgroundColor: '#AAFF00' });
+        });
+
+        resetButton.on('pointerdown', () => {
+            this.resetTree();
         });
     }
 
